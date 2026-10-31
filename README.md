@@ -38,6 +38,8 @@ The initial version uses synthetic data and mock connectors. It is **not** a liv
 | [Delivery tracker](docs/implementation/TRACKER.md) | The current source of truth for implementation status. |
 | [Development guide](docs/DEV_DOC.md) | Engineering conventions, system boundaries, quality gates, and development workflow. |
 | [High-level design](docs/HLD.md) | Release 0 data, system, integration, API, and deployment architecture. |
+| [Data strategy](docs/DATA_STRATEGY.md) | Deterministic synthetic data design, fixtures, scenarios, and demo-data safeguards. |
+| [Agentic architecture](docs/AGENTIC_ARCHITECTURE.md) | Bounded agent workflow, tools, evidence, approvals, verification, and evaluation design. |
 | [Documentation management](docs/DOCUMENTATION_MANAGEMENT.md) | Ownership and update rules for product, planning, and engineering documentation. |
 | [Architecture](docs/ARCHITECTURE.md) | System boundaries, canonical model, component responsibilities, and data flow. |
 | [Security and governance](docs/SECURITY_GOVERNANCE.md) | Bounded-autonomy controls, financial safety rules, and audit requirements. |

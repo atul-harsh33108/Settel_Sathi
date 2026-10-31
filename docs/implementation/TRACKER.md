@@ -12,7 +12,7 @@
 | FND-02 | M0 | Add local setup, environment template, linting, tests, and CI baseline | Not started | FND-01 | — | |
 | FND-03 | M0 | Add app configuration, structured logging, correlation IDs, and health check | Not started | FND-01 | — | |
 | DAT-01 | M1 | Define canonical financial entities and migrations/schema | Not started | FND-01 | — | |
-| DAT-02 | M1 | Create versioned synthetic transaction, settlement, and bank fixtures | Not started | DAT-01 | — | Must be clearly labelled synthetic. |
+| DAT-02 | M1 | Implement deterministic `v1` synthetic fixtures, manifest, mock responses, and expected-result oracle | Not started | DAT-01 | — | Follow [data strategy](../DATA_STRATEGY.md); must be clearly labelled synthetic. |
 | DAT-03 | M1 | Implement validation, normalization, provenance, and idempotent import jobs | Not started | DAT-01, DAT-02 | — | |
 | DAT-04 | M1 | Test invalid and duplicate imports | Not started | DAT-03 | — | |
 | REC-01 | M2 | Implement money arithmetic and reconciliation rule framework | Not started | DAT-01 | — | |
@@ -27,9 +27,9 @@
 | EXP-01 | M4 | Implement dashboard metrics and exception list APIs | Not started | REC-04 | — | |
 | EXP-02 | M4 | Implement import, dashboard, evidence, case, and approval UI | Not started | EXP-01, CAS-02 | — | |
 | EXP-03 | M4 | Add empty, error, loading, and synthetic-data states | Not started | EXP-02 | — | |
-| AGT-01 | M5 | Define agent read-tool and action-tool contracts | Not started | REC-04, CAS-02 | — | |
-| AGT-02 | M5 | Implement evidence-grounded investigation workflow | Not started | AGT-01 | — | Must work with deterministic fallback. |
-| AGT-03 | M5 | Add agent safety and groundedness evaluations | Not started | AGT-02 | — | |
+| AGT-01 | M5 | Implement persisted agent-run state, typed tool contracts, and evidence bundles | Not started | REC-04, CAS-02 | — | Follow [agentic architecture](../AGENTIC_ARCHITECTURE.md). |
+| AGT-02 | M5 | Implement evidence-grounded investigation and approval-gated workflow | Not started | AGT-01 | — | Must work with deterministic fallback. |
+| AGT-03 | M5 | Add agent safety, groundedness, tenant-scope, and false-closure evaluations | Not started | AGT-02 | — | |
 | WRK-01 | M6 | Implement mock support connector and idempotent submit action | Not started | CAS-02 | — | |
 | WRK-02 | M6 | Implement monitoring, verification, and escalation routes | Not started | WRK-01, AGT-02 | — | |
 | WRK-03 | M6 | Run full missing-settlement scenario | Not started | EXP-02, WRK-02 | — | |

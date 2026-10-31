@@ -48,12 +48,12 @@ The UI, API, workflow engine, and persistence layer must support this exact flow
 ### M1 — Domain model and ingestion
 
 1. Define entities for transaction, settlement batch, settlement line item, bank entry, import job, and source provenance.
-2. Create versioned synthetic CSV fixtures matching the demo scenario.
+2. Implement the [data strategy](../DATA_STRATEGY.md): deterministic versioned synthetic fixtures, a seed manifest, mock responses, and expected-result oracle.
 3. Implement parsing, validation, normalization, idempotency, and import-result reporting.
 4. Preserve raw source metadata and source record identifiers.
 
 **Dependencies:** M0.  
-**Deliverables:** import API/service, fixtures, validation errors, duplicate-import tests.
+**Deliverables:** import API/service, deterministic fixtures, seed/reset command, validation errors, duplicate-import tests, and integrity assertions.
 
 ### M2 — Deterministic reconciliation
 
@@ -88,8 +88,8 @@ The UI, API, workflow engine, and persistence layer must support this exact flow
 
 ### M5 — Agent orchestration
 
-1. Define typed, narrow read tools for case and reconciliation evidence.
-2. Define a policy-checked draft/submit tool boundary.
+1. Implement the [agentic architecture](../AGENTIC_ARCHITECTURE.md): persisted agent runs, typed narrow read tools, evidence bundles, and deterministic fallback routing.
+2. Define a policy-checked draft/submit tool boundary and exact-payload approval contract.
 3. Implement an orchestration state machine that retrieves facts, creates a human-readable explanation, recommends next steps, and requests approval when required.
 4. Add a deterministic fallback explanation for operation without a model key.
 5. Add groundedness, unsafe-action, and false-closure evaluation cases.

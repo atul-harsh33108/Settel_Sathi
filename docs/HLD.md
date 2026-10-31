@@ -3,15 +3,21 @@
 **Status:** Proposed architecture for the hackathon prototype  
 **Product source of truth:** [Master PRD](../SettleSaathi_PRD_v1.0.md)  
 **Delivery scope:** One synthetic, end-to-end settlement-to-bank discrepancy workflow
+**Data source of truth:** [Data strategy and simulation specification](DATA_STRATEGY.md)
+**Agent source of truth:** [Agentic architecture](AGENTIC_ARCHITECTURE.md)
 
 ## 1. Architecture objective
 
 Release 0 must demonstrate a merchant concern moving safely through:
 
-```text
-Imported source files -> canonical records -> deterministic reconciliation
--> evidence-backed investigation -> approval-gated mock submission
--> monitored case -> verified terminal outcome
+```mermaid
+flowchart LR
+    I[Imported synthetic source files] --> N[Canonical records]
+    N --> R[Deterministic reconciliation]
+    R --> E[Evidence-backed investigation]
+    E --> A[Approval-gated mock submission]
+    A --> M[Monitored case]
+    M --> V[Verified terminal outcome]
 ```
 
 The system must make a clear distinction between three values:
@@ -39,7 +45,7 @@ No component may collapse these values into a single “settled” figure.
 
 ### 2.2 System requirements
 
-- A browser application for data import, dashboard metrics, exception evidence, case timeline, approval, and synthetic-demo reset.
+- A browser application for synthetic-data load/import, dashboard metrics, exception evidence, case timeline, approval, and deterministic demo reset.
 - A typed FastAPI backend that owns validation, authorization, financial rules, case transitions, and audit writing.
 - A relational system of record for normalized financial data and workflows.
 - Private object storage for source-file artifacts and generated evidence packages.
