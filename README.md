@@ -39,6 +39,8 @@ The initial version uses synthetic data and mock connectors. It is **not** a liv
 | [Development guide](docs/DEV_DOC.md) | Engineering conventions, system boundaries, quality gates, and development workflow. |
 | [High-level design](docs/HLD.md) | Release 0 data, system, integration, API, and deployment architecture. |
 | [Data strategy](docs/DATA_STRATEGY.md) | Deterministic synthetic data design, fixtures, scenarios, and demo-data safeguards. |
+| [Data-workstream plan](docs/data/IMPLEMENTATION_PLAN.md) | Handoff-ready plan for creating, validating, and delivering Release 0 test data. |
+| [Data-workstream tracker](docs/data/TRACKER.md) | Current status and acceptance evidence for the data workstream. |
 | [Agentic architecture](docs/AGENTIC_ARCHITECTURE.md) | Bounded agent workflow, tools, evidence, approvals, verification, and evaluation design. |
 | [Documentation management](docs/DOCUMENTATION_MANAGEMENT.md) | Ownership and update rules for product, planning, and engineering documentation. |
 | [Architecture](docs/ARCHITECTURE.md) | System boundaries, canonical model, component responsibilities, and data flow. |

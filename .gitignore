@@ -18,9 +18,9 @@ dist/
 .vite/
 
 # Local runtime data and uploaded financial artifacts
-data/
-storage/
-uploads/
+/data/
+/storage/
+/uploads/
 *.sqlite3
 
 # Editor and operating-system files

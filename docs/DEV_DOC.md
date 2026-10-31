@@ -60,7 +60,13 @@ Never run project `python` or `pip` commands from the global interpreter; use `u
 
 Use Mermaid for all new architecture, sequence, state, and entity-relationship diagrams in Markdown. Do not add hand-drawn ASCII diagrams to documentation.
 
-## 4. Engineering invariants
+## 4. Dependency policy
+
+Use the latest **stable, compatible** package releases when a dependency is first added. Use `uv add <package>` without an arbitrary old pin, review its release compatibility with the selected Python/runtime version, and commit the resulting lockfile.
+
+Do not use a prerelease, major-version upgrade, or newly released package blindly when it could jeopardize the hackathon demo. Prefer the latest stable version that passes the project’s tests and works with the existing dependency graph. Any exception—such as a package held back for compatibility—must be recorded in the implementation tracker with its reason.
+
+## 5. Engineering invariants
 
 1. **Money is exact.** Persist currency and decimal precision (or minor units); format only at the UI boundary.
 2. **Financial states stay separate.** Payment collection, provider settlement, and bank credit are not interchangeable fields.
@@ -71,7 +77,7 @@ Use Mermaid for all new architecture, sequence, state, and entity-relationship d
 7. **Closure is verified.** No agent message, successful API request, or elapsed timer can close a case alone.
 8. **Synthetic data is labeled.** Fixtures and UI must never imply real merchant or provider information.
 
-## 5. Core contracts
+## 6. Core contracts
 
 ### Import contract
 
@@ -116,7 +122,7 @@ Define narrow typed tools such as:
 
 The last tool must independently verify approval and policy; it must never rely on the model saying it has permission.
 
-## 6. API conventions
+## 7. API conventions
 
 - Version endpoints, for example `/api/v1/...`.
 - Validate all inputs and return a consistent error envelope with a correlation ID.
@@ -125,7 +131,7 @@ The last tool must independently verify approval and policy; it must never rely 
 - Redact secrets and sensitive raw data from errors and logs.
 - Use optimistic concurrency or version checks for case transitions and approval payloads.
 
-## 7. Testing strategy
+## 8. Testing strategy
 
 | Test layer | Focus | Required Release 0 examples |
 | --- | --- | --- |
@@ -137,7 +143,7 @@ The last tool must independently verify approval and policy; it must never rely 
 
 For every defect, add or strengthen the smallest test that would have caught it.
 
-## 8. Local development workflow
+## 9. Local development workflow
 
 1. Read the PRD requirement and linked tracker task before coding.
 2. Record any material design decision in `docs/DECISIONS.md` or an ADR before implementing it.
@@ -146,7 +152,7 @@ For every defect, add or strengthen the smallest test that would have caught it.
 5. Update the tracker with direct evidence in the same change set.
 6. Keep changes small: one coherent tracker task or a tightly coupled group.
 
-## 9. Configuration and secrets
+## 10. Configuration and secrets
 
 - Put only non-secret defaults in version control.
 - Supply local secrets through an ignored `.env` file based on `.env.example`.
@@ -154,6 +160,6 @@ For every defect, add or strengthen the smallest test that would have caught it.
 - Do not commit `.env`, tokens, actual merchant data, or unredacted screenshots.
 - Keep the application usable with no LLM key by using a deterministic explanation mode.
 
-## 10. Definition of done for a tracker task
+## 11. Definition of done for a tracker task
 
 A task is `Done` only when its acceptance condition is met, relevant automated tests pass, error behavior is considered, security/policy implications are covered, documentation is updated, and the tracker contains a concrete evidence link. Code that exists but cannot be demonstrated or verified remains `In progress`.

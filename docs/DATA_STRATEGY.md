@@ -3,6 +3,8 @@
 **Status:** Approved for Release 0  
 **Principle:** The prototype uses deterministic, internally consistent synthetic data. It must never present mock records as real Paytm, bank, merchant, or customer data.
 
+**Execution workstream:** [Data implementation plan](data/IMPLEMENTATION_PLAN.md) and [data tracker](data/TRACKER.md). Until that workstream provides validated fixtures, product development uses only its versioned mock-data contract.
+
 ## 1. Decision
 
 Release 0 has no authorized payment-provider API, bank API, or merchant CSV source. The product will therefore use three related data forms:
