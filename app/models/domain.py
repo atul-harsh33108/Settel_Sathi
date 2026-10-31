@@ -227,3 +227,80 @@ class AuditEventRecord:
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+
+class ReconciliationStatus:
+    RECONCILED = "RECONCILED"
+    UNMATCHED = "UNMATCHED"
+    WITHIN_EXPECTED_WINDOW = "WITHIN_EXPECTED_WINDOW"
+    PARTIALLY_MATCHED = "PARTIALLY_MATCHED"
+    ADJUSTMENT_EXPLAINED = "ADJUSTMENT_EXPLAINED"
+    DUPLICATE = "DUPLICATE"
+    VERIFIED_RESOLVED = "VERIFIED_RESOLVED"
+    ESCALATED = "ESCALATED"
+
+
+class ReconciliationReasonCode:
+    MATCHED_PAYOUT_TO_BANK = "MATCHED_PAYOUT_TO_BANK"
+    SETTLEMENT_ABSENT_FROM_BANK = "SETTLEMENT_ABSENT_FROM_BANK"
+    SETTLEMENT_IN_FLIGHT_WINDOW = "SETTLEMENT_IN_FLIGHT_WINDOW"
+    PARTIAL_SETTLEMENT_BATCH = "PARTIAL_SETTLEMENT_BATCH"
+    DEDUCTIONS_MATCH_POLICY = "DEDUCTIONS_MATCH_POLICY"
+    DUPLICATE_SOURCE_RECORD_DETECTED = "DUPLICATE_SOURCE_RECORD_DETECTED"
+    REFUND_BALANCED = "REFUND_BALANCED"
+    MANY_TO_ONE_BATCH_MATCH = "MANY_TO_ONE_BATCH_MATCH"
+    TERMINAL_RESOLUTION_EVIDENCE_MATCHED = "TERMINAL_RESOLUTION_EVIDENCE_MATCHED"
+    AWAITING_TERMINAL_OUTCOME = "AWAITING_TERMINAL_OUTCOME"
+
+
+DEFAULT_RULE_VERSION = "v1.0.0"
+
+
+@dataclass(frozen=True)
+class ReconciliationRunRecord:
+    """Execution record for a deterministic reconciliation run."""
+
+    id: str
+    organization_id: str
+    rule_version: str
+    status: str  # PENDING, COMPLETED, FAILED
+    as_of_date: str
+    summary_counts_json: str | None
+    started_at: str
+    completed_at: str | None
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class ReconciliationResultRecord:
+    """Detailed reconciliation result and evidence for a transaction cluster or scenario."""
+
+    id: str
+    run_id: str
+    organization_id: str
+    scenario_id: str | None
+    status: str
+    reason_code: str
+    rule_version: str
+    collected_amount: Decimal
+    settled_amount: Decimal
+    bank_credited_amount: Decimal
+    discrepancy_amount: Decimal
+    currency: str
+    input_record_ids_json: str
+    matched_record_ids_json: str
+    evidence_json: str
+    explanation: str
+    case_needed: bool
+    requires_approval: bool
+    evaluated_at: str
+
+    def to_dict(self) -> dict[str, Any]:
+        d = asdict(self)
+        d["collected_amount"] = format_money(self.collected_amount)
+        d["settled_amount"] = format_money(self.settled_amount)
+        d["bank_credited_amount"] = format_money(self.bank_credited_amount)
+        d["discrepancy_amount"] = format_money(self.discrepancy_amount)
+        return d

@@ -6,7 +6,14 @@ from pathlib import Path
 
 import pytest
 
-from app.cli import cmd_import_file, cmd_reset, cmd_seed, cmd_status
+from app.cli import (
+    cmd_import_file,
+    cmd_reconcile,
+    cmd_reconciliation_results,
+    cmd_reset,
+    cmd_seed,
+    cmd_status,
+)
 from app.db.connection import get_connection, init_db
 from app.services import repository
 
@@ -84,3 +91,44 @@ def test_cli_import_file_failure_exits(tmp_path: Path, capsys) -> None:
         cmd_import_file(args)
     captured = capsys.readouterr()
     assert "status=FAILED" in captured.out
+
+
+def test_cli_reconcile_and_results(tmp_path: Path, capsys) -> None:
+    db_file = tmp_path / "cli_rec_test.db"
+    db_url = f"sqlite:///{db_file}"
+
+    # 1. Seed database first
+    seed_args = DummyArgs(
+        fixture_dir="fixtures/synthetic/v1",
+        org_id="org_aarav",
+        db_url=db_url,
+    )
+    cmd_seed(seed_args)
+    capsys.readouterr()
+
+    # 2. Run reconcile command
+    rec_args = DummyArgs(
+        org_id="org_aarav",
+        as_of_date="2026-10-30",
+        db_url=db_url,
+    )
+    cmd_reconcile(rec_args)
+    rec_captured = capsys.readouterr()
+    assert "completed successfully" in rec_captured.out
+    assert "Total clusters: 10" in rec_captured.out
+    assert "Total collected: 81450.00 INR" in rec_captured.out
+    assert "SCN-02" in rec_captured.out
+    assert "YES (Approval Req)" in rec_captured.out
+
+    # 3. Run reconciliation-results command for latest run
+    res_args = DummyArgs(
+        org_id="org_aarav",
+        run_id=None,
+        status="UNMATCHED",
+        db_url=db_url,
+    )
+    cmd_reconciliation_results(res_args)
+    res_captured = capsys.readouterr()
+    assert "Reconciliation results for run=" in res_captured.out
+    assert "count=1" in res_captured.out
+    assert "SCN-02" in res_captured.out

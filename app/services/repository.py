@@ -3,12 +3,16 @@
 from __future__ import annotations
 
 import sqlite3
+from decimal import Decimal
+from typing import Any
 
 from app.models.domain import (
     AuditEventRecord,
     BankEntryRecord,
     ImportJobRecord,
     MockSupportUpdateRecord,
+    ReconciliationResultRecord,
+    ReconciliationRunRecord,
     SettlementBatchRecord,
     SettlementLineItemRecord,
     SourceArtifactRecord,
@@ -491,3 +495,342 @@ def list_source_artifacts(
         (organization_id, limit),
     )
     return [row_to_artifact(r) for r in cur.fetchall()]
+
+
+def row_to_transaction(row: sqlite3.Row) -> TransactionRecord:
+    return TransactionRecord(
+        id=row["id"],
+        organization_id=row["organization_id"],
+        store_id=row["store_id"],
+        provider=row["provider"],
+        provider_transaction_id=row["provider_transaction_id"],
+        merchant_reference=row["merchant_reference"],
+        occurred_at=row["occurred_at"],
+        status=row["status"],
+        payment_method=row["payment_method"],
+        gross_amount=Decimal(row["gross_amount"]),
+        currency=row["currency"],
+        source_artifact_id=row["source_artifact_id"],
+        source_row_number=row["source_row_number"],
+        created_at=row["created_at"],
+    )
+
+
+def row_to_settlement(row: sqlite3.Row) -> SettlementBatchRecord:
+    return SettlementBatchRecord(
+        id=row["id"],
+        organization_id=row["organization_id"],
+        provider=row["provider"],
+        provider_settlement_id=row["provider_settlement_id"],
+        payout_reference=row["payout_reference"],
+        settlement_date=row["settlement_date"],
+        reported_status=row["reported_status"],
+        gross_amount=Decimal(row["gross_amount"]),
+        fee_amount=Decimal(row["fee_amount"]),
+        tax_amount=Decimal(row["tax_amount"]),
+        adjustment_amount=Decimal(row["adjustment_amount"]),
+        net_amount=Decimal(row["net_amount"]),
+        currency=row["currency"],
+        source_artifact_id=row["source_artifact_id"],
+        source_row_number=row["source_row_number"],
+        created_at=row["created_at"],
+    )
+
+
+def row_to_line_item(row: sqlite3.Row) -> SettlementLineItemRecord:
+    return SettlementLineItemRecord(
+        id=row["id"],
+        organization_id=row["organization_id"],
+        provider_settlement_id=row["provider_settlement_id"],
+        line_item_id=row["line_item_id"],
+        source_reference=row["source_reference"],
+        line_type=row["line_type"],
+        amount=Decimal(row["amount"]),
+        currency=row["currency"],
+        source_artifact_id=row["source_artifact_id"],
+        source_row_number=row["source_row_number"],
+        created_at=row["created_at"],
+    )
+
+
+def row_to_bank_entry(row: sqlite3.Row) -> BankEntryRecord:
+    return BankEntryRecord(
+        id=row["id"],
+        organization_id=row["organization_id"],
+        statement_entry_id=row["statement_entry_id"],
+        bank_account_alias=row["bank_account_alias"],
+        booking_date=row["booking_date"],
+        direction=row["direction"],
+        amount=Decimal(row["amount"]),
+        currency=row["currency"],
+        narration=row["narration"],
+        utr_reference=row["utr_reference"],
+        source_artifact_id=row["source_artifact_id"],
+        source_row_number=row["source_row_number"],
+        created_at=row["created_at"],
+    )
+
+
+def row_to_support_update(row: sqlite3.Row) -> MockSupportUpdateRecord:
+    return MockSupportUpdateRecord(
+        id=row["id"],
+        organization_id=row["organization_id"],
+        case_reference=row["case_reference"],
+        event_at=row["event_at"],
+        status=row["status"],
+        summary=row["summary"],
+        terminal_outcome=bool(row["terminal_outcome"]),
+        evidence_reference=row["evidence_reference"],
+        source_artifact_id=row["source_artifact_id"],
+        source_row_number=row["source_row_number"],
+        created_at=row["created_at"],
+    )
+
+
+def row_to_run(row: sqlite3.Row) -> ReconciliationRunRecord:
+    return ReconciliationRunRecord(
+        id=row["id"],
+        organization_id=row["organization_id"],
+        rule_version=row["rule_version"],
+        status=row["status"],
+        as_of_date=row["as_of_date"],
+        summary_counts_json=row["summary_counts_json"],
+        started_at=row["started_at"],
+        completed_at=row["completed_at"],
+    )
+
+
+def row_to_result(row: sqlite3.Row) -> ReconciliationResultRecord:
+    return ReconciliationResultRecord(
+        id=row["id"],
+        run_id=row["run_id"],
+        organization_id=row["organization_id"],
+        scenario_id=row["scenario_id"],
+        status=row["status"],
+        reason_code=row["reason_code"],
+        rule_version=row["rule_version"],
+        collected_amount=Decimal(row["collected_amount"]),
+        settled_amount=Decimal(row["settled_amount"]),
+        bank_credited_amount=Decimal(row["bank_credited_amount"]),
+        discrepancy_amount=Decimal(row["discrepancy_amount"]),
+        currency=row["currency"],
+        input_record_ids_json=row["input_record_ids_json"],
+        matched_record_ids_json=row["matched_record_ids_json"],
+        evidence_json=row["evidence_json"],
+        explanation=row["explanation"],
+        case_needed=bool(row["case_needed"]),
+        requires_approval=bool(row["requires_approval"]),
+        evaluated_at=row["evaluated_at"],
+    )
+
+
+def insert_reconciliation_run(conn: sqlite3.Connection, run: ReconciliationRunRecord) -> None:
+    conn.execute(
+        """INSERT INTO reconciliation_runs (
+            id, organization_id, rule_version, status, as_of_date,
+            summary_counts_json, started_at, completed_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+        (
+            run.id,
+            run.organization_id,
+            run.rule_version,
+            run.status,
+            run.as_of_date,
+            run.summary_counts_json,
+            run.started_at,
+            run.completed_at,
+        ),
+    )
+
+
+def update_reconciliation_run(conn: sqlite3.Connection, run: ReconciliationRunRecord) -> None:
+    conn.execute(
+        """UPDATE reconciliation_runs SET
+            status = ?,
+            summary_counts_json = ?,
+            completed_at = ?
+           WHERE id = ?""",
+        (
+            run.status,
+            run.summary_counts_json,
+            run.completed_at,
+            run.id,
+        ),
+    )
+
+
+def insert_reconciliation_results(
+    conn: sqlite3.Connection, results: list[ReconciliationResultRecord]
+) -> None:
+    conn.executemany(
+        """INSERT INTO reconciliation_results (
+            id, run_id, organization_id, scenario_id, status, reason_code,
+            rule_version, collected_amount, settled_amount, bank_credited_amount,
+            discrepancy_amount, currency, input_record_ids_json, matched_record_ids_json,
+            evidence_json, explanation, case_needed, requires_approval, evaluated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        [
+            (
+                r.id,
+                r.run_id,
+                r.organization_id,
+                r.scenario_id,
+                r.status,
+                r.reason_code,
+                r.rule_version,
+                format_money(r.collected_amount),
+                format_money(r.settled_amount),
+                format_money(r.bank_credited_amount),
+                format_money(r.discrepancy_amount),
+                r.currency,
+                r.input_record_ids_json,
+                r.matched_record_ids_json,
+                r.evidence_json,
+                r.explanation,
+                1 if r.case_needed else 0,
+                1 if r.requires_approval else 0,
+                r.evaluated_at,
+            )
+            for r in results
+        ],
+    )
+
+
+def find_run_by_id(
+    conn: sqlite3.Connection, run_id: str, organization_id: str = "org_aarav"
+) -> ReconciliationRunRecord | None:
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT * FROM reconciliation_runs WHERE id = ? AND organization_id = ?",
+        (run_id, organization_id),
+    )
+    row = cur.fetchone()
+    return row_to_run(row) if row else None
+
+
+def find_latest_run(
+    conn: sqlite3.Connection, organization_id: str = "org_aarav"
+) -> ReconciliationRunRecord | None:
+    cur = conn.cursor()
+    cur.execute(
+        """SELECT * FROM reconciliation_runs
+           WHERE organization_id = ?
+           ORDER BY started_at DESC LIMIT 1""",
+        (organization_id,),
+    )
+    row = cur.fetchone()
+    return row_to_run(row) if row else None
+
+
+def list_reconciliation_runs(
+    conn: sqlite3.Connection, organization_id: str = "org_aarav", limit: int = 50
+) -> list[ReconciliationRunRecord]:
+    cur = conn.cursor()
+    cur.execute(
+        """SELECT * FROM reconciliation_runs
+           WHERE organization_id = ?
+           ORDER BY started_at DESC LIMIT ?""",
+        (organization_id, limit),
+    )
+    return [row_to_run(r) for r in cur.fetchall()]
+
+
+def find_result_by_id(
+    conn: sqlite3.Connection, result_id: str, organization_id: str = "org_aarav"
+) -> ReconciliationResultRecord | None:
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT * FROM reconciliation_results WHERE id = ? AND organization_id = ?",
+        (result_id, organization_id),
+    )
+    row = cur.fetchone()
+    return row_to_result(row) if row else None
+
+
+def list_reconciliation_results(
+    conn: sqlite3.Connection,
+    organization_id: str = "org_aarav",
+    run_id: str | None = None,
+    status: str | None = None,
+    scenario_id: str | None = None,
+    case_needed: bool | None = None,
+) -> list[ReconciliationResultRecord]:
+    cur = conn.cursor()
+    query = "SELECT * FROM reconciliation_results WHERE organization_id = ?"
+    params: list[Any] = [organization_id]
+
+    if run_id:
+        query += " AND run_id = ?"
+        params.append(run_id)
+    if status:
+        query += " AND status = ?"
+        params.append(status)
+    if scenario_id:
+        query += " AND scenario_id = ?"
+        params.append(scenario_id)
+    if case_needed is not None:
+        query += " AND case_needed = ?"
+        params.append(1 if case_needed else 0)
+
+    query += " ORDER BY scenario_id ASC, evaluated_at DESC"
+    cur.execute(query, params)
+    return [row_to_result(r) for r in cur.fetchall()]
+
+
+def fetch_duplicate_transaction_ids(
+    conn: sqlite3.Connection, organization_id: str = "org_aarav"
+) -> set[str]:
+    cur = conn.cursor()
+    cur.execute(
+        """SELECT entity_id FROM audit_events
+           WHERE organization_id = ? AND entity_type = 'TRANSACTION'
+           AND event_type = 'DUPLICATE_SOURCE_RECORD_DETECTED'""",
+        (organization_id,),
+    )
+    return {row[0] for row in cur.fetchall()}
+
+
+def fetch_reconciliation_inputs(
+    conn: sqlite3.Connection, organization_id: str = "org_aarav"
+) -> dict[str, Any]:
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT * FROM transactions WHERE organization_id = ? ORDER BY occurred_at ASC",
+        (organization_id,),
+    )
+    txns = [row_to_transaction(r) for r in cur.fetchall()]
+
+    cur.execute(
+        "SELECT * FROM settlement_batches WHERE organization_id = ? ORDER BY settlement_date ASC",
+        (organization_id,),
+    )
+    settlements = [row_to_settlement(r) for r in cur.fetchall()]
+
+    cur.execute(
+        "SELECT * FROM settlement_line_items WHERE organization_id = ? ORDER BY line_item_id ASC",
+        (organization_id,),
+    )
+    line_items = [row_to_line_item(r) for r in cur.fetchall()]
+
+    cur.execute(
+        "SELECT * FROM bank_entries WHERE organization_id = ? ORDER BY booking_date ASC",
+        (organization_id,),
+    )
+    bank_entries = [row_to_bank_entry(r) for r in cur.fetchall()]
+
+    cur.execute(
+        "SELECT * FROM mock_support_updates WHERE organization_id = ? ORDER BY event_at ASC",
+        (organization_id,),
+    )
+    support_updates = [row_to_support_update(r) for r in cur.fetchall()]
+
+    duplicate_txn_ids = fetch_duplicate_transaction_ids(conn, organization_id)
+
+    return {
+        "transactions": txns,
+        "settlements": settlements,
+        "line_items": line_items,
+        "bank_entries": bank_entries,
+        "support_updates": support_updates,
+        "duplicate_txn_ids": duplicate_txn_ids,
+    }

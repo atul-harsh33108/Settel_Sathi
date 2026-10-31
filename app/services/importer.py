@@ -347,6 +347,26 @@ class ImportService:
                 repository.insert_source_artifact(s_conn, artifact)
                 if inferred_type == "TRANSACTIONS":
                     repository.insert_transactions(s_conn, records)
+                    for dup in getattr(self, "_duplicate_txns", []):
+                        repository.insert_audit_event(
+                            s_conn,
+                            AuditEventRecord(
+                                id=f"aud_{uuid4().hex[:16]}",
+                                organization_id=organization_id,
+                                entity_type="TRANSACTION",
+                                entity_id=dup["provider_transaction_id"],
+                                event_type="DUPLICATE_SOURCE_RECORD_DETECTED",
+                                details_json=json.dumps(
+                                    {
+                                        "provider_transaction_id": dup["provider_transaction_id"],
+                                        "row_number": dup["row_number"],
+                                        "artifact_id": artifact_id,
+                                        "file_name": file_name,
+                                    }
+                                ),
+                                created_at=completed_at,
+                            ),
+                        )
                 elif inferred_type == "SETTLEMENTS":
                     repository.insert_settlements(s_conn, records)
                 elif inferred_type == "SETTLEMENT_LINE_ITEMS":
@@ -583,6 +603,7 @@ class ImportService:
                 0,
             )
 
+        self._duplicate_txns: list[dict[str, Any]] = []
         records: list[TransactionRecord] = []
         errors: list[RowValidationError] = []
         seen_ids: set[str] = set()
@@ -649,6 +670,9 @@ class ImportService:
             elif provider_txn_id in seen_ids:
                 # SCN-06: Deduplicate duplicate transaction row in merchant feed
                 logger.info("Deduplicating transaction %s at row %d", provider_txn_id, idx)
+                self._duplicate_txns.append(
+                    {"provider_transaction_id": provider_txn_id, "row_number": idx}
+                )
                 continue
             else:
                 seen_ids.add(provider_txn_id)

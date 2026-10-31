@@ -167,3 +167,43 @@ CREATE TABLE IF NOT EXISTS audit_events (
 );
 
 CREATE INDEX IF NOT EXISTS idx_audit_entity ON audit_events(organization_id, entity_type, entity_id);
+
+CREATE TABLE IF NOT EXISTS reconciliation_runs (
+    id TEXT PRIMARY KEY,
+    organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    rule_version TEXT NOT NULL,
+    status TEXT NOT NULL, -- PENDING, COMPLETED, FAILED
+    as_of_date TEXT NOT NULL,
+    summary_counts_json TEXT,
+    started_at TEXT NOT NULL,
+    completed_at TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_reconciliation_runs_org ON reconciliation_runs(organization_id, started_at);
+
+CREATE TABLE IF NOT EXISTS reconciliation_results (
+    id TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL REFERENCES reconciliation_runs(id) ON DELETE CASCADE,
+    organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    scenario_id TEXT,
+    status TEXT NOT NULL,
+    reason_code TEXT NOT NULL,
+    rule_version TEXT NOT NULL,
+    collected_amount TEXT NOT NULL,
+    settled_amount TEXT NOT NULL,
+    bank_credited_amount TEXT NOT NULL,
+    discrepancy_amount TEXT NOT NULL,
+    currency TEXT NOT NULL DEFAULT 'INR',
+    input_record_ids_json TEXT NOT NULL,
+    matched_record_ids_json TEXT NOT NULL,
+    evidence_json TEXT NOT NULL,
+    explanation TEXT NOT NULL,
+    case_needed INTEGER NOT NULL DEFAULT 0,
+    requires_approval INTEGER NOT NULL DEFAULT 0,
+    evaluated_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_reconciliation_results_run ON reconciliation_results(run_id);
+CREATE INDEX IF NOT EXISTS idx_reconciliation_results_scenario ON reconciliation_results(organization_id, scenario_id);
+CREATE INDEX IF NOT EXISTS idx_reconciliation_results_status ON reconciliation_results(organization_id, status);
+
