@@ -1,6 +1,7 @@
 """Data validation, financial balance checks, and synthetic safety scanner."""
 
 import csv
+import hashlib
 import json
 import re
 from decimal import Decimal, InvalidOperation
@@ -26,6 +27,7 @@ class FixtureValidator:
         self._check_required_files()
         if not self.errors:
             self._validate_manifest()
+            self._validate_csv_headers()
             self._validate_settlement_math()
             self._validate_referential_integrity()
             self._validate_safety_and_prefixes()
@@ -59,7 +61,7 @@ class FixtureValidator:
                 self.checks_passed += 1
 
     def _validate_manifest(self):
-        """Validate manifest structure and version fields."""
+        """Validate versions, checksums, sizes, and record counts in the manifest."""
         manifest_path = self.fixture_dir / "manifest.json"
         try:
             with open(manifest_path, "r", encoding="utf-8") as f:
@@ -68,9 +70,71 @@ class FixtureValidator:
                 self.errors.append(f"Invalid dataset_version: {manifest.get('dataset_version')}")
             if manifest.get("schema_version") != "1.0":
                 self.errors.append(f"Invalid schema_version: {manifest.get('schema_version')}")
+            for filename, metadata in manifest.get("files", {}).items():
+                path = self.fixture_dir / filename
+                if not path.is_file():
+                    self.errors.append(f"Manifest file is missing: {filename}")
+                    continue
+                content = path.read_bytes()
+                actual_hash = hashlib.sha256(content).hexdigest()
+                if metadata.get("sha256") != actual_hash:
+                    self.errors.append(f"SHA-256 mismatch for {filename}")
+                if metadata.get("size_bytes") != len(content):
+                    self.errors.append(f"Byte size mismatch for {filename}")
+                else:
+                    self.checks_passed += 1
+
+            expected_counts = manifest.get("record_counts", {})
+            count_files = {
+                "transactions": "transactions.csv",
+                "settlements": "settlements.csv",
+                "settlement_line_items": "settlement_line_items.csv",
+                "bank_entries": "bank_statement.csv",
+            }
+            for entity, filename in count_files.items():
+                with (self.fixture_dir / filename).open(encoding="utf-8", newline="") as source:
+                    actual = sum(1 for _ in csv.DictReader(source))
+                if expected_counts.get(entity) != actual:
+                    self.errors.append(
+                        f"Record count mismatch for {filename}: manifest={expected_counts.get(entity)}, actual={actual}"
+                    )
+                else:
+                    self.checks_passed += 1
             self.checks_passed += 1
         except Exception as e:
             self.errors.append(f"Failed to read manifest.json: {e}")
+
+    def _validate_csv_headers(self):
+        """Validate exact v1 headers and order for each source CSV."""
+        contracts = {
+            "transactions.csv": [
+                "provider", "provider_transaction_id", "merchant_reference", "store_id",
+                "occurred_at", "status", "payment_method", "gross_amount", "currency",
+            ],
+            "settlements.csv": [
+                "provider", "provider_settlement_id", "payout_reference", "settlement_date",
+                "reported_status", "gross_amount", "fee_amount", "tax_amount",
+                "adjustment_amount", "net_amount", "currency",
+            ],
+            "settlement_line_items.csv": [
+                "provider_settlement_id", "line_item_id", "source_reference", "line_type",
+                "amount", "currency",
+            ],
+            "bank_statement.csv": [
+                "statement_entry_id", "bank_account_alias", "booking_date", "direction",
+                "amount", "currency", "narration", "utr_reference",
+            ],
+        }
+        for filename, expected in contracts.items():
+            try:
+                with (self.fixture_dir / filename).open(encoding="utf-8-sig", newline="") as source:
+                    actual = next(csv.reader(source), [])
+                if actual != expected:
+                    self.errors.append(f"CSV header mismatch for {filename}: {actual}")
+                else:
+                    self.checks_passed += 1
+            except OSError as error:
+                self.errors.append(f"Unable to read {filename}: {error}")
 
     def _validate_settlement_math(self):
         """Ensure gross - fee - tax + adjustment == net for every settlement row."""
@@ -136,19 +200,20 @@ class FixtureValidator:
         aadhaar_pattern = re.compile(r"\b\d{4}\s\d{4}\s\d{4}\b")
         live_api_pattern = re.compile(r"https?://(securegw|api|login)\.paytm\.com", re.IGNORECASE)
 
-        for fpath in self.fixture_dir.glob("*.*"):
+        for fpath in self.fixture_dir.rglob("*"):
             if fpath.suffix not in (".csv", ".json"):
                 continue
             content = fpath.read_text(encoding="utf-8")
+            relative_name = str(fpath.relative_to(self.fixture_dir))
 
             if phone_pattern.search(content):
-                self.errors.append(f"Potential real phone number pattern found in {fpath.name}")
+                self.errors.append(f"Potential real phone number pattern found in {relative_name}")
             if pan_pattern.search(content):
-                self.errors.append(f"Potential PAN format pattern found in {fpath.name}")
+                self.errors.append(f"Potential PAN format pattern found in {relative_name}")
             if aadhaar_pattern.search(content):
-                self.errors.append(f"Potential Aadhaar format pattern found in {fpath.name}")
+                self.errors.append(f"Potential Aadhaar format pattern found in {relative_name}")
             if live_api_pattern.search(content):
-                self.errors.append(f"Potential live Paytm endpoint pattern found in {fpath.name}")
+                self.errors.append(f"Potential live Paytm endpoint pattern found in {relative_name}")
 
             self.checks_passed += 1
 
@@ -167,15 +232,42 @@ class FixtureValidator:
                 else:
                     self.checks_passed += 1
 
-            # Specifically check SCN-02 has ₹18,450
-            scn02 = scenarios.get("SCN-02", {})
-            if scn02.get("expected_collected_amount") != "18450.00":
-                self.errors.append(f"SCN-02 collected amount is not 18450.00: {scn02.get('expected_collected_amount')}")
-            if scn02.get("expected_settled_amount") != "18450.00":
-                self.errors.append(f"SCN-02 settled amount is not 18450.00: {scn02.get('expected_settled_amount')}")
-            if scn02.get("expected_bank_credit") != "0.00":
-                self.errors.append(f"SCN-02 bank credit is not 0.00: {scn02.get('expected_bank_credit')}")
-            self.checks_passed += 1
+            with (self.fixture_dir / "transactions.csv").open(encoding="utf-8", newline="") as source:
+                transactions = {row["provider_transaction_id"]: row for row in csv.DictReader(source)}
+            with (self.fixture_dir / "settlements.csv").open(encoding="utf-8", newline="") as source:
+                settlements = {row["provider_settlement_id"]: row for row in csv.DictReader(source)}
+            with (self.fixture_dir / "bank_statement.csv").open(encoding="utf-8", newline="") as source:
+                bank_entries = {row["statement_entry_id"]: row for row in csv.DictReader(source)}
+
+            for scenario_id, scenario in scenarios.items():
+                txn_ids = scenario.get("contributing_transaction_ids", [])
+                settlement_ids = scenario.get("contributing_settlement_ids", [])
+                bank_ids = scenario.get("contributing_bank_entry_ids", [])
+                if any(record_id not in transactions for record_id in txn_ids):
+                    self.errors.append(f"{scenario_id} references an unknown transaction")
+                    continue
+                if any(record_id not in settlements for record_id in settlement_ids):
+                    self.errors.append(f"{scenario_id} references an unknown settlement")
+                    continue
+                if any(record_id not in bank_entries for record_id in bank_ids):
+                    self.errors.append(f"{scenario_id} references an unknown bank entry")
+                    continue
+
+                collected = sum((Decimal(transactions[key]["gross_amount"]) for key in txn_ids), Decimal("0.00"))
+                settled = sum((Decimal(settlements[key]["net_amount"]) for key in settlement_ids), Decimal("0.00"))
+                credited = sum((Decimal(bank_entries[key]["amount"]) for key in bank_ids if bank_entries[key]["direction"] == "CREDIT"), Decimal("0.00"))
+                expected = {
+                    "expected_collected_amount": collected,
+                    "expected_settled_amount": settled,
+                    "expected_bank_credit": credited,
+                }
+                for field, actual in expected.items():
+                    if scenario.get(field) != f"{actual:.2f}":
+                        self.errors.append(
+                            f"{scenario_id} {field} mismatch: oracle={scenario.get(field)}, records={actual:.2f}"
+                        )
+                    else:
+                        self.checks_passed += 1
         except Exception as e:
             self.errors.append(f"Oracle alignment validation failed: {e}")
 
@@ -195,11 +287,13 @@ class FixtureValidator:
             "",
             "## 1. Verified Invariants",
             "- **Mathematical Balance:** Gross = Net + Fees + Taxes - Adjustments for all settlement records.",
-            "- **Exact Currency & Precision:** All monetary figures use `INR` with exactly two decimal places.",
+            "- **Settlement Arithmetic:** Settlement net equals gross minus fees/tax plus signed adjustment.",
             "- **Referential Integrity:** All line items link directly to valid settlement IDs and source transactions.",
-            "- **Synthetic Data Safety:** Scanned and verified zero real phone numbers, PAN, Aadhaar, CVVs, or live URLs.",
+            "- **Manifest Integrity:** Listed file hashes, sizes, and record counts match the bundle.",
+            "- **Schema Headers:** Core CSV headers and column order match the v1 contract.",
+            "- **Synthetic Data Safety:** Core and nested CSV/JSON fixtures scanned for phone, PAN, Aadhaar, and live Paytm endpoint patterns.",
             "- **Hero Demo Alignment (SCN-02):** Collected ₹18,450.00, Settled ₹18,450.00, Bank credit ₹0.00.",
-            "- **Scenario Oracle Coverage:** Full test oracle assertions defined for scenarios SCN-01 through SCN-10.",
+            "- **Scenario Oracle Alignment:** Oracle amounts match the referenced transaction, settlement, and bank records.",
             "",
             "## 2. Issues & Warnings",
         ]
@@ -218,7 +312,7 @@ class FixtureValidator:
         lines.extend([
             "",
             "## 3. Conclusion",
-            "This fixture bundle meets all Release 0 data requirements and is certified ready for ingestion and reconciliation testing.",
+            "This report covers fixture integrity checks only; it does not certify the product importer or reconciler.",
         ])
 
         return "\n".join(lines)

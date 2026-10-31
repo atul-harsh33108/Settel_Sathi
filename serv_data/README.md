@@ -1,7 +1,9 @@
 # SettleSaathi Data Strategy & Synthetic Simulation Engine
 
 **Directory:** `serv_data/`  
-**Purpose:** Owns the canonical data dictionary, schema contracts, deterministic synthetic generator, validation engine, and test oracle for SettleSaathi Release 0.
+**Purpose:** Owns the canonical data dictionary, schema contracts, fixed synthetic scenario generator, validation engine, and test oracle for SettleSaathi Release 0.
+
+The `seed` is included in the manifest for reproducibility and future generator extensions. Current scenario records are fixed, so changing the seed does not change their contents.
 
 ---
 
@@ -46,22 +48,22 @@ serv_data/
 
 ### Generate Fixtures
 ```powershell
-python serv_data/src/cli.py generate --output serv_data/fixtures/v1 --mirror fixtures/synthetic/v1
+uv run python serv_data/src/cli.py generate --output serv_data/fixtures/v1 --mirror fixtures/synthetic/v1
 ```
 
 ### Validate Fixtures
 ```powershell
-python serv_data/src/cli.py validate --fixture-dir serv_data/fixtures/v1
+uv run python serv_data/src/cli.py validate --fixture-dir serv_data/fixtures/v1
 ```
 
 ### Test Determinism (Repeatability)
 ```powershell
-python serv_data/src/cli.py test-determinism
+uv run python serv_data/src/cli.py test-determinism
 ```
 
 ### Run Automated Tests
 ```powershell
-python -m unittest discover -s serv_data/tests -p "test_*.py"
+uv run python -m unittest discover -s serv_data/tests -p "test_*.py"
 ```
 
 ---

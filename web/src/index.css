@@ -54,6 +54,113 @@ h1 {
   padding: 18px 20px;
 }
 
+.notice code {
+  background: rgba(0, 76, 156, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.import-card {
+  background: #fff;
+  border: 1px solid #d0e2f5;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(20, 33, 61, 0.04);
+}
+
+.import-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.import-header h2 {
+  margin: 0 0 6px;
+  font-size: 1.3rem;
+  color: #002970;
+}
+
+.import-subtext {
+  margin: 0;
+  color: #556987;
+  font-size: 0.95rem;
+}
+
+.import-button {
+  background: #006be6;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.import-button:hover:not(:disabled) {
+  background: #0053b3;
+}
+
+.import-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.import-error {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: #fee;
+  border: 1px solid #fcc;
+  color: #c00;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.import-results {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #eef3f8;
+}
+
+.import-success {
+  margin: 0 0 16px;
+  color: #00874e;
+  font-weight: 700;
+}
+
+.counts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.count-item {
+  background: #f7faff;
+  border: 1px solid #dce8f8;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.count-num {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #002970;
+}
+
+.count-label {
+  font-size: 0.8rem;
+  color: #556987;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
 .principles {
   display: grid;
   gap: 16px;

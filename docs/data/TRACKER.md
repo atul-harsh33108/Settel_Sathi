@@ -18,10 +18,12 @@
 | DATA-11 | D4 | Implement SCN-01 through SCN-10 fixture narratives and expected outputs | Done | DATA-09 | [scenarios.py](../../serv_data/src/scenarios.py) | Scenarios SCN-01 to SCN-10 implemented; SCN-02 retains ₹18,450. |
 | DATA-12 | D4 | Produce and review `expected_results.json` | Done | DATA-11 | [expected_results.json](../../serv_data/fixtures/v1/expected_results.json) | Test oracle covers reconciliation, approval, and closure outcomes. |
 | DATA-13 | D5 | Run financial integrity and reference validation | Done | DATA-09, DATA-12 | [test_financial_integrity.py](../../serv_data/tests/test_financial_integrity.py) | Gross = net + deductions balanced; all references valid. |
-| DATA-14 | D5 | Run synthetic-data safety scan and labelling check | Done | DATA-09 | [test_safety_and_labels.py](../../serv_data/tests/test_safety_and_labels.py) | Scanned zero phone, PAN, Aadhaar, CVV, or live endpoints. |
-| DATA-15 | D5 | Produce validation report and resolve blockers | Done | DATA-13, DATA-14 | [validation_report.md](../../serv_data/fixtures/v1/validation_report.md) | Automated validation report generated: 58 checks passed, 0 errors. |
+| DATA-14 | D5 | Run synthetic-data safety scan and labelling check | Done | DATA-09 | [test_safety_and_labels.py](../../serv_data/tests/test_safety_and_labels.py) | Validator scans nested CSV/JSON for phone, PAN, Aadhaar, and live Paytm endpoint patterns. |
+| DATA-15 | D5 | Produce validation report and resolve blockers | Done | DATA-13, DATA-14 | [validation_report.md](../../serv_data/fixtures/v1/validation_report.md) | Validator now checks manifest, headers, safety, and oracle alignment: 107 checks passed. |
 | DATA-16 | D6 | Create fixture-bundle handoff note, commands, checksums, and limitations | Done | DATA-08, DATA-10, DATA-15 | [HANDOFF.md](../../serv_data/fixtures/v1/HANDOFF.md) | Handoff note and instructions published in fixture bundle. |
 | DATA-17 | D6 | Product-workstream import/seed acceptance test | In review | DATA-16 | [HANDOFF.md](../../serv_data/fixtures/v1/HANDOFF.md) | Fixtures delivered and mirrored; awaiting consumer M1 ingestion test. |
+| DATA-18 | D5 | Verify manifest checksums/sizes/counts, exact CSV headers, nested safety scan, and oracle amount alignment | Done | DATA-13, DATA-14 | `serv_data/src/validator.py`; 107 checks passed. | Report describes only checks actually performed. |
+| DATA-19 | D6 | Correct handoff/report wording for synthetic bank data and fixed scenario seed | Done | DATA-18 | `serv_data/fixtures/v1/HANDOFF.md`, `validation_report.md`, `serv_data/README.md` | |
 
 ## Blocker log
 

@@ -5,7 +5,7 @@
 **Status:** Certified & Accepted for Product Implementation  
 **Release Target:** Release 0 (Hackathon Prototype)  
 **Fixed As-Of Date:** `2026-10-30T18:30:00Z` (Midnight 31 Oct 2026 IST)  
-**Random Seed:** `42`  
+**Generator Seed:** `42` (recorded for reproducibility; current scenario records are fixed and do not vary with seed)
 
 ---
 
@@ -16,7 +16,7 @@
 | `transactions.csv` | Customer collections | 21 | `e5bcafd6aa94400f300b20fde8cd13be11774c89eb35368116345c84421ef5c9` |
 | `settlements.csv` | Provider payout batches | 11 | `d8a35b1a65656141d25d42da2773effd60dfef369318339e55c6a5d565f2a14e` |
 | `settlement_line_items.csv` | Line-item breakdowns | 21 | `96fc4e67e839d5cd2cf570a722d52d306a25b32a864fbab562037d1757b2737e` |
-| `bank_statement.csv` | Official bank entries | 6 | `6034bdf3cde396b884d53d640d5bd12b2de417e6263d795ab9399164820b243e` |
+| `bank_statement.csv` | Synthetic demo bank entries | 6 | `6034bdf3cde396b884d53d640d5bd12b2de417e6263d795ab9399164820b243e` |
 | `mock_support_updates.json` | Simulated support status | 2 | `4042fc76dbab2499ec631ad3b135cd68a33b85f6fee9c89dbc20abc5bbe8af97` |
 | `expected_results.json` | Test oracle assertions | 10 scenarios | `4aa850fefebd0bc7d896e361a06bfb1f8b9f88737aeec2e44908397b30539cca` |
 | `manifest.json` | Integrity metadata | — | *Generated with file hashes* |
