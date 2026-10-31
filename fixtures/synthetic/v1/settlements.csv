@@ -1,0 +1,12 @@
+provider,provider_settlement_id,payout_reference,settlement_date,reported_status,gross_amount,fee_amount,tax_amount,adjustment_amount,net_amount,currency
+PAYTM_MOCK,mock_settle_scn01_001,mock_utr_scn01_001,2026-10-28,PROCESSED,12500.00,0.00,0.00,0.00,12500.00,INR
+PAYTM_MOCK,mock_settle_scn02_001,mock_utr_scn02_999,2026-10-30,PROCESSED,18450.00,0.00,0.00,0.00,18450.00,INR
+PAYTM_MOCK,mock_settle_scn03_001,mock_utr_scn03_001,2026-10-30,PROCESSED,8200.00,0.00,0.00,0.00,8200.00,INR
+PAYTM_MOCK,mock_settle_scn04_001,mock_utr_scn04_001,2026-10-28,PROCESSED,3500.00,0.00,0.00,0.00,3500.00,INR
+PAYTM_MOCK,mock_settle_scn05_001,mock_utr_scn05_001,2026-10-29,PROCESSED,10000.00,150.00,27.00,-200.00,9623.00,INR
+PAYTM_MOCK,mock_settle_scn06_001,mock_utr_scn06_001,2026-10-29,PROCESSED,2500.00,0.00,0.00,0.00,2500.00,INR
+PAYTM_MOCK,mock_settle_scn07_001,mock_utr_scn07_001,2026-10-28,PROCESSED,2100.00,0.00,0.00,-2100.00,0.00,INR
+PAYTM_MOCK,mock_settle_scn08_001,mock_utr_scn08_comb,2026-10-29,PROCESSED,6200.00,0.00,0.00,0.00,6200.00,INR
+PAYTM_MOCK,mock_settle_scn08_002,mock_utr_scn08_comb,2026-10-29,PROCESSED,4800.00,0.00,0.00,0.00,4800.00,INR
+PAYTM_MOCK,mock_settle_scn09_001,mock_utr_scn09_fail,2026-10-27,PROCESSED,7500.00,0.00,0.00,0.00,7500.00,INR
+PAYTM_MOCK,mock_settle_scn10_001,mock_utr_scn10_001,2026-10-28,PROCESSED,4200.00,0.00,0.00,0.00,4200.00,INR

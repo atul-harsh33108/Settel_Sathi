@@ -1,0 +1,7 @@
+statement_entry_id,bank_account_alias,booking_date,direction,amount,currency,narration,utr_reference
+mock_bank_scn01_001,bank_acc_4092,2026-10-29,CREDIT,12500.00,INR,NEFT-PAYTM-mock_utr_scn01_001,mock_utr_scn01_001
+mock_bank_scn04_001,bank_acc_4092,2026-10-28,CREDIT,3500.00,INR,NEFT-PAYTM-mock_utr_scn04_001,mock_utr_scn04_001
+mock_bank_scn05_001,bank_acc_4092,2026-10-29,CREDIT,9623.00,INR,NEFT-PAYTM-mock_utr_scn05_001,mock_utr_scn05_001
+mock_bank_scn06_001,bank_acc_4092,2026-10-29,CREDIT,2500.00,INR,NEFT-PAYTM-mock_utr_scn06_001,mock_utr_scn06_001
+mock_bank_scn08_001,bank_acc_4092,2026-10-29,CREDIT,11000.00,INR,NEFT-PAYTM-mock_utr_scn08_comb,mock_utr_scn08_comb
+mock_bank_scn09_001,bank_acc_4092,2026-10-29,CREDIT,7500.00,INR,NEFT-PAYTM-mock_utr_scn09_recredit,mock_utr_scn09_recredit

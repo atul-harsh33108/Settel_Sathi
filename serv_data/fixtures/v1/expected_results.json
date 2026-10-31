@@ -1,0 +1,230 @@
+{
+  "dataset_version": "v1",
+  "as_of_timestamp": "2026-10-30T18:30:00Z",
+  "description": "Deterministic test oracle for SettleSaathi Release 0 reconciliation and case workflows.",
+  "scenarios": {
+    "SCN-01": {
+      "scenario_id": "SCN-01",
+      "name": "Standard Reconciliation",
+      "description": "Transactions fully settled by provider and confirmed credited in bank statement.",
+      "expected_status": "RECONCILED",
+      "reason_code": "MATCHED_PAYOUT_TO_BANK",
+      "expected_collected_amount": "12500.00",
+      "expected_settled_amount": "12500.00",
+      "expected_bank_credit": "12500.00",
+      "expected_case_needed": false,
+      "requires_approval": false,
+      "terminal_outcome": true,
+      "contributing_transaction_ids": [
+        "mock_txn_scn01_001",
+        "mock_txn_scn01_002",
+        "mock_txn_scn01_003"
+      ],
+      "contributing_settlement_ids": [
+        "mock_settle_scn01_001"
+      ],
+      "contributing_bank_entry_ids": [
+        "mock_bank_scn01_001"
+      ]
+    },
+    "SCN-02": {
+      "scenario_id": "SCN-02",
+      "name": "Missing Settlement (Hero Demo)",
+      "description": "Transactions totalling \u20b918,450 reported settled by provider under UTR mock_utr_scn02_999, but no credit appears in bank statement.",
+      "expected_status": "UNMATCHED",
+      "reason_code": "SETTLEMENT_ABSENT_FROM_BANK",
+      "expected_collected_amount": "18450.00",
+      "expected_settled_amount": "18450.00",
+      "expected_bank_credit": "0.00",
+      "expected_case_needed": true,
+      "requires_approval": true,
+      "terminal_outcome": null,
+      "contributing_transaction_ids": [
+        "mock_txn_scn02_001",
+        "mock_txn_scn02_002",
+        "mock_txn_scn02_003",
+        "mock_txn_scn02_004"
+      ],
+      "contributing_settlement_ids": [
+        "mock_settle_scn02_001"
+      ],
+      "contributing_bank_entry_ids": []
+    },
+    "SCN-03": {
+      "scenario_id": "SCN-03",
+      "name": "Within Expected Window",
+      "description": "Settlement initiated recently; within allowed banking window (T+1). Do not open case.",
+      "expected_status": "WITHIN_EXPECTED_WINDOW",
+      "reason_code": "SETTLEMENT_IN_FLIGHT_WINDOW",
+      "expected_collected_amount": "8200.00",
+      "expected_settled_amount": "8200.00",
+      "expected_bank_credit": "0.00",
+      "expected_case_needed": false,
+      "requires_approval": false,
+      "terminal_outcome": null,
+      "contributing_transaction_ids": [
+        "mock_txn_scn03_001",
+        "mock_txn_scn03_002"
+      ],
+      "contributing_settlement_ids": [
+        "mock_settle_scn03_001"
+      ],
+      "contributing_bank_entry_ids": []
+    },
+    "SCN-04": {
+      "scenario_id": "SCN-04",
+      "name": "Partial Match",
+      "description": "Transactions total \u20b95,000, but settlement batch only included \u20b93,500; \u20b91,500 residual pending.",
+      "expected_status": "PARTIALLY_MATCHED",
+      "reason_code": "PARTIAL_SETTLEMENT_BATCH",
+      "expected_collected_amount": "5000.00",
+      "expected_settled_amount": "3500.00",
+      "expected_bank_credit": "3500.00",
+      "expected_case_needed": true,
+      "requires_approval": true,
+      "terminal_outcome": null,
+      "contributing_transaction_ids": [
+        "mock_txn_scn04_001",
+        "mock_txn_scn04_002"
+      ],
+      "contributing_settlement_ids": [
+        "mock_settle_scn04_001"
+      ],
+      "contributing_bank_entry_ids": [
+        "mock_bank_scn04_001"
+      ]
+    },
+    "SCN-05": {
+      "scenario_id": "SCN-05",
+      "name": "Adjustment Explained",
+      "description": "Gross collections \u20b910,000 reduced by fees (\u20b9150), taxes (\u20b927), and chargeback adjustment (-\u20b9200) yielding exact \u20b99,623 bank credit.",
+      "expected_status": "ADJUSTMENT_EXPLAINED",
+      "reason_code": "DEDUCTIONS_MATCH_POLICY",
+      "expected_collected_amount": "10000.00",
+      "expected_settled_amount": "9623.00",
+      "expected_bank_credit": "9623.00",
+      "expected_case_needed": false,
+      "requires_approval": false,
+      "terminal_outcome": true,
+      "contributing_transaction_ids": [
+        "mock_txn_scn05_001",
+        "mock_txn_scn05_002"
+      ],
+      "contributing_settlement_ids": [
+        "mock_settle_scn05_001"
+      ],
+      "contributing_bank_entry_ids": [
+        "mock_bank_scn05_001"
+      ]
+    },
+    "SCN-06": {
+      "scenario_id": "SCN-06",
+      "name": "Duplicate Transaction",
+      "description": "Duplicate transaction row detected and safely excluded from net settlement totals.",
+      "expected_status": "DUPLICATE",
+      "reason_code": "DUPLICATE_SOURCE_RECORD_DETECTED",
+      "expected_collected_amount": "2500.00",
+      "expected_settled_amount": "2500.00",
+      "expected_bank_credit": "2500.00",
+      "expected_case_needed": false,
+      "requires_approval": false,
+      "terminal_outcome": true,
+      "contributing_transaction_ids": [
+        "mock_txn_scn06_001"
+      ],
+      "contributing_settlement_ids": [
+        "mock_settle_scn06_001"
+      ],
+      "contributing_bank_entry_ids": [
+        "mock_bank_scn06_001"
+      ]
+    },
+    "SCN-07": {
+      "scenario_id": "SCN-07",
+      "name": "Refund / Reversal Linked",
+      "description": "Sale refunded before settlement; net payout \u20b90.00 accurately reconciled.",
+      "expected_status": "RECONCILED",
+      "reason_code": "REFUND_BALANCED",
+      "expected_collected_amount": "2100.00",
+      "expected_settled_amount": "0.00",
+      "expected_bank_credit": "0.00",
+      "expected_case_needed": false,
+      "requires_approval": false,
+      "terminal_outcome": true,
+      "contributing_transaction_ids": [
+        "mock_txn_scn07_001"
+      ],
+      "contributing_settlement_ids": [
+        "mock_settle_scn07_001"
+      ],
+      "contributing_bank_entry_ids": []
+    },
+    "SCN-08": {
+      "scenario_id": "SCN-08",
+      "name": "Multi-Batch Settlement",
+      "description": "Two settlement batches (\u20b96,200 and \u20b94,800) merged into one combined bank credit of \u20b911,000.",
+      "expected_status": "RECONCILED",
+      "reason_code": "MANY_TO_ONE_BATCH_MATCH",
+      "expected_collected_amount": "11000.00",
+      "expected_settled_amount": "11000.00",
+      "expected_bank_credit": "11000.00",
+      "expected_case_needed": false,
+      "requires_approval": false,
+      "terminal_outcome": true,
+      "contributing_transaction_ids": [
+        "mock_txn_scn08_001",
+        "mock_txn_scn08_002",
+        "mock_txn_scn08_003"
+      ],
+      "contributing_settlement_ids": [
+        "mock_settle_scn08_001",
+        "mock_settle_scn08_002"
+      ],
+      "contributing_bank_entry_ids": [
+        "mock_bank_scn08_001"
+      ]
+    },
+    "SCN-09": {
+      "scenario_id": "SCN-09",
+      "name": "Support Terminal Resolution",
+      "description": "Provider confirmed payout re-processed; verified by authoritative bank credit under re-credit UTR.",
+      "expected_status": "VERIFIED_RESOLVED",
+      "reason_code": "TERMINAL_RESOLUTION_EVIDENCE_MATCHED",
+      "expected_collected_amount": "7500.00",
+      "expected_settled_amount": "7500.00",
+      "expected_bank_credit": "7500.00",
+      "expected_case_needed": true,
+      "requires_approval": true,
+      "terminal_outcome": true,
+      "contributing_transaction_ids": [
+        "mock_txn_scn09_001"
+      ],
+      "contributing_settlement_ids": [
+        "mock_settle_scn09_001"
+      ],
+      "contributing_bank_entry_ids": [
+        "mock_bank_scn09_001"
+      ]
+    },
+    "SCN-10": {
+      "scenario_id": "SCN-10",
+      "name": "Ambiguous Support State",
+      "description": "Support response is pending and non-terminal; system blocks false closure and keeps case active.",
+      "expected_status": "ESCALATED",
+      "reason_code": "AWAITING_TERMINAL_OUTCOME",
+      "expected_collected_amount": "4200.00",
+      "expected_settled_amount": "4200.00",
+      "expected_bank_credit": "0.00",
+      "expected_case_needed": true,
+      "requires_approval": true,
+      "terminal_outcome": false,
+      "contributing_transaction_ids": [
+        "mock_txn_scn10_001"
+      ],
+      "contributing_settlement_ids": [
+        "mock_settle_scn10_001"
+      ],
+      "contributing_bank_entry_ids": []
+    }
+  }
+}

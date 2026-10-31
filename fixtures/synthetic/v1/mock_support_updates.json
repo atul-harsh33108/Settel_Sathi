@@ -1,0 +1,18 @@
+[
+  {
+    "case_reference": "mock_case_scn09_001",
+    "event_at": "2026-10-29T16:00:00Z",
+    "status": "RESOLVED",
+    "summary": "Provider confirmed bank re-processed payout under UTR mock_utr_scn09_recredit.",
+    "terminal_outcome": true,
+    "evidence_reference": "mock_ticket_ack_90412"
+  },
+  {
+    "case_reference": "mock_case_scn10_001",
+    "event_at": "2026-10-29T14:30:00Z",
+    "status": "IN_REVIEW",
+    "summary": "Provider support ticket active; awaiting nodal bank inquiry response.",
+    "terminal_outcome": false,
+    "evidence_reference": "mock_ticket_ack_pending"
+  }
+]

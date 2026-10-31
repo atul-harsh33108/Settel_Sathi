@@ -1,0 +1,25 @@
+-- Base Tech Stack-
+
+	Frontend - ReactJS/VueJS (JavaScript/TypeScript, TailwindCSS)
+	Backend - FastAPI + Uvicorn
+	Database - For now database we will be use sql lite or in file file store in data folder
+
+	For React/js/ts use node
+	For Python use UV
+
+	
+
+-- Things to mind
+	
+	use Latest Package whenever possible 
+	use a package for a task if it is available of a task instead of doing ( means if a task can be done/achieved by using a package dont try to implement by your self )
+    always use venv for python done use system's installed python 
+    every thing should be in readble and maintainable format
+    
+-- Folders
+
+	always maintain a proper folder always
+	
+
+
+	

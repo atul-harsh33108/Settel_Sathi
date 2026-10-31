@@ -8,11 +8,11 @@
 
 | ID | Milestone | Task | Status | Depends on | Completion evidence | Notes / blocker |
 | --- | --- | --- | --- | --- | --- | --- |
-| FND-01 | M0 | Select repository structure and package management | Not started | — | — | |
-| FND-02 | M0 | Add local setup, environment template, linting, tests, and CI baseline | Not started | FND-01 | — | |
-| FND-03 | M0 | Add app configuration, structured logging, correlation IDs, and health check | Not started | FND-01 | — | |
+| FND-01 | M0 | Select repository structure and package management | Done | — | `pyproject.toml`, `uv.lock`, `web/package.json`, `web/package-lock.json`; `serv_data/` preserved for data workstream. | Python 3.14.2 resolved by uv in this environment; metadata supports Python >=3.12. |
+| FND-02 | M0 | Add local setup, environment template, linting, tests, and CI baseline | Done | FND-01 | `.env.example`, `docs/LOCAL_DEVELOPMENT.md`, `.github/workflows/ci.yml`, `uv.lock`, `web/package-lock.json`; backend Ruff clean + pytest 2 passed; frontend ESLint clean + Vite production build passed. | |
+| FND-03 | M0 | Add app configuration, structured logging, correlation IDs, and health check | Done | FND-01 | `app/core/config.py`, `app/core/logging.py`, `app/main.py`, `app/api/routes.py`; health and readiness tests pass. | |
 | DAT-01 | M1 | Define canonical financial entities and migrations/schema | Not started | FND-01 | — | |
-| DAT-02 | M1 | Implement deterministic `v1` synthetic fixtures, manifest, mock responses, and expected-result oracle | Not started | DAT-01 | — | Follow [data strategy](../DATA_STRATEGY.md); must be clearly labelled synthetic. |
+| DAT-02 | M1 | Implement deterministic `v1` synthetic fixtures, manifest, mock responses, and expected-result oracle | Done | DAT-01 | [manifest.json](../../serv_data/fixtures/v1/manifest.json), [HANDOFF.md](../../serv_data/fixtures/v1/HANDOFF.md) | Certified v1 bundle delivered in `serv_data/fixtures/v1/` and mirrored to `fixtures/synthetic/v1/`. |
 | DAT-03 | M1 | Implement validation, normalization, provenance, and idempotent import jobs | Not started | DAT-01, DAT-02 | — | |
 | DAT-04 | M1 | Test invalid and duplicate imports | Not started | DAT-03 | — | |
 | REC-01 | M2 | Implement money arithmetic and reconciliation rule framework | Not started | DAT-01 | — | |

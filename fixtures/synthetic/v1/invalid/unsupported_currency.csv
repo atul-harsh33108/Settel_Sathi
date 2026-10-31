@@ -1,0 +1,2 @@
+provider,provider_transaction_id,merchant_reference,store_id,occurred_at,status,payment_method,gross_amount,currency
+PAYTM_MOCK,mock_txn_bad_curr,mock_ord_bad_curr,store_indiranagar,2026-10-29T10:00:00Z,SUCCESS,UPI,100.00,USD

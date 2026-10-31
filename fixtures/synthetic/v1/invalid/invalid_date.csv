@@ -1,0 +1,2 @@
+provider,provider_settlement_id,payout_reference,settlement_date,reported_status,gross_amount,fee_amount,tax_amount,adjustment_amount,net_amount,currency
+PAYTM_MOCK,mock_settle_bad_date,mock_utr_bad_date,31-02-2026,PROCESSED,18450.00,0.00,0.00,0.00,18450.00,INR

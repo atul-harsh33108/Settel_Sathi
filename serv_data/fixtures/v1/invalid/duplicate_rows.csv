@@ -1,0 +1,3 @@
+statement_entry_id,bank_account_alias,booking_date,direction,amount,currency,narration,utr_reference
+mock_bank_dup_entry,bank_acc_4092,2026-10-29,CREDIT,5000.00,INR,NEFT-PAYTM-dup,mock_utr_dup
+mock_bank_dup_entry,bank_acc_4092,2026-10-29,CREDIT,5000.00,INR,NEFT-PAYTM-dup,mock_utr_dup

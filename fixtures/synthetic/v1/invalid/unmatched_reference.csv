@@ -1,0 +1,2 @@
+provider_settlement_id,line_item_id,source_reference,line_type,amount,currency
+mock_settle_nonexistent,mock_line_ghost,mock_txn_ghost_9999,PAYMENT,1000.00,INR

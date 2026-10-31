@@ -1,0 +1,51 @@
+{
+  "dataset_version": "v1",
+  "schema_version": "1.0",
+  "seed": 42,
+  "as_of_timestamp": "2026-10-30T18:30:00Z",
+  "scenarios": [
+    "SCN-01",
+    "SCN-02",
+    "SCN-03",
+    "SCN-04",
+    "SCN-05",
+    "SCN-06",
+    "SCN-07",
+    "SCN-08",
+    "SCN-09",
+    "SCN-10"
+  ],
+  "record_counts": {
+    "transactions": 21,
+    "settlements": 11,
+    "settlement_line_items": 21,
+    "bank_entries": 6,
+    "mock_support_updates": 2
+  },
+  "files": {
+    "transactions.csv": {
+      "sha256": "e5bcafd6aa94400f300b20fde8cd13be11774c89eb35368116345c84421ef5c9",
+      "size_bytes": 2504
+    },
+    "settlements.csv": {
+      "sha256": "d8a35b1a65656141d25d42da2773effd60dfef369318339e55c6a5d565f2a14e",
+      "size_bytes": 1369
+    },
+    "settlement_line_items.csv": {
+      "sha256": "96fc4e67e839d5cd2cf570a722d52d306a25b32a864fbab562037d1757b2737e",
+      "size_bytes": 1807
+    },
+    "bank_statement.csv": {
+      "sha256": "6034bdf3cde396b884d53d640d5bd12b2de417e6263d795ab9399164820b243e",
+      "size_bytes": 800
+    },
+    "mock_support_updates.json": {
+      "sha256": "4042fc76dbab2499ec631ad3b135cd68a33b85f6fee9c89dbc20abc5bbe8af97",
+      "size_bytes": 608
+    },
+    "expected_results.json": {
+      "sha256": "4aa850fefebd0bc7d896e361a06bfb1f8b9f88737aeec2e44908397b30539cca",
+      "size_bytes": 8440
+    }
+  }
+}
