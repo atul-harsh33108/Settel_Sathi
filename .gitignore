@@ -1,0 +1,30 @@
+# Local environment and secret exports
+.env
+.env.*
+!.env.example
+env_dump.txt
+
+# Python and test artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Node and frontend artifacts
+node_modules/
+dist/
+.vite/
+
+# Local runtime data and uploaded financial artifacts
+data/
+storage/
+uploads/
+*.sqlite3
+
+# Editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
