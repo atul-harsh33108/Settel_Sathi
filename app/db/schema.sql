@@ -159,14 +159,20 @@ CREATE INDEX IF NOT EXISTS idx_support_case ON mock_support_updates(organization
 CREATE TABLE IF NOT EXISTS audit_events (
     id TEXT PRIMARY KEY,
     organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    actor_type TEXT NOT NULL DEFAULT 'system',
+    actor_id TEXT NOT NULL DEFAULT 'system',
+    correlation_id TEXT,
     entity_type TEXT NOT NULL,
     entity_id TEXT NOT NULL,
     event_type TEXT NOT NULL,
+    payload_hash TEXT,
     details_json TEXT,
     created_at TEXT NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_audit_entity ON audit_events(organization_id, entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_audit_correlation ON audit_events(organization_id, correlation_id);
+CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_events(organization_id, created_at);
 
 CREATE TABLE IF NOT EXISTS reconciliation_runs (
     id TEXT PRIMARY KEY,
@@ -206,4 +212,83 @@ CREATE TABLE IF NOT EXISTS reconciliation_results (
 CREATE INDEX IF NOT EXISTS idx_reconciliation_results_run ON reconciliation_results(run_id);
 CREATE INDEX IF NOT EXISTS idx_reconciliation_results_scenario ON reconciliation_results(organization_id, scenario_id);
 CREATE INDEX IF NOT EXISTS idx_reconciliation_results_status ON reconciliation_results(organization_id, status);
+
+CREATE TABLE IF NOT EXISTS cases (
+    id TEXT PRIMARY KEY,
+    organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    reconciliation_result_id TEXT REFERENCES reconciliation_results(id) ON DELETE SET NULL,
+    case_type TEXT NOT NULL,
+    status TEXT NOT NULL,
+    priority TEXT NOT NULL DEFAULT 'MEDIUM',
+    subject_type TEXT NOT NULL,
+    subject_id TEXT NOT NULL,
+    decision_summary TEXT,
+    version INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_cases_org ON cases(organization_id);
+CREATE INDEX IF NOT EXISTS idx_cases_status ON cases(organization_id, status);
+CREATE INDEX IF NOT EXISTS idx_cases_subject ON cases(organization_id, subject_type, subject_id);
+CREATE INDEX IF NOT EXISTS idx_cases_result ON cases(organization_id, reconciliation_result_id);
+
+CREATE TABLE IF NOT EXISTS case_events (
+    id TEXT PRIMARY KEY,
+    case_id TEXT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+    organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    actor_type TEXT NOT NULL,
+    actor_id TEXT NOT NULL,
+    from_status TEXT,
+    to_status TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    details_json TEXT,
+    created_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_case_events_case ON case_events(case_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_case_events_org ON case_events(organization_id, created_at);
+
+CREATE TABLE IF NOT EXISTS approvals (
+    id TEXT PRIMARY KEY,
+    case_id TEXT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+    organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    action_type TEXT NOT NULL,
+    action_class TEXT NOT NULL,
+    payload_hash TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'PENDING',
+    requested_by_type TEXT NOT NULL,
+    requested_by_id TEXT NOT NULL,
+    approved_by TEXT,
+    approved_at TEXT,
+    expires_at TEXT NOT NULL,
+    rejection_reason TEXT,
+    created_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_approvals_case ON approvals(case_id);
+CREATE INDEX IF NOT EXISTS idx_approvals_status ON approvals(organization_id, status);
+
+CREATE TABLE IF NOT EXISTS external_action_attempts (
+    id TEXT PRIMARY KEY,
+    organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    case_id TEXT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+    approval_id TEXT REFERENCES approvals(id) ON DELETE SET NULL,
+    idempotency_key TEXT NOT NULL,
+    action_type TEXT NOT NULL,
+    status TEXT NOT NULL,
+    payload_hash TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    response_json TEXT,
+    error_message TEXT,
+    executed_at TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    CONSTRAINT uq_action_idempotency UNIQUE (organization_id, idempotency_key)
+);
+
+CREATE INDEX IF NOT EXISTS idx_action_attempts_case ON external_action_attempts(case_id);
+CREATE INDEX IF NOT EXISTS idx_action_attempts_idem ON external_action_attempts(organization_id, idempotency_key);
+
 

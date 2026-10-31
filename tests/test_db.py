@@ -32,6 +32,10 @@ def test_init_db_creates_tables_and_demo_seed(tmp_path: Path) -> None:
             "bank_entries",
             "mock_support_updates",
             "audit_events",
+            "cases",
+            "case_events",
+            "approvals",
+            "external_action_attempts",
         }
         assert required.issubset(tables)
 

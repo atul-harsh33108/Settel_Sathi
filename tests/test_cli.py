@@ -7,6 +7,9 @@ from pathlib import Path
 import pytest
 
 from app.cli import (
+    cmd_approve_case,
+    cmd_case_detail,
+    cmd_cases,
     cmd_import_file,
     cmd_reconcile,
     cmd_reconciliation_results,
@@ -16,6 +19,8 @@ from app.cli import (
 )
 from app.db.connection import get_connection, init_db
 from app.services import repository
+from app.services.cases import CaseService
+from app.services.policy import PolicyService
 
 
 class DummyArgs:
@@ -132,3 +137,84 @@ def test_cli_reconcile_and_results(tmp_path: Path, capsys) -> None:
     assert "Reconciliation results for run=" in res_captured.out
     assert "count=1" in res_captured.out
     assert "SCN-02" in res_captured.out
+
+
+def test_cli_cases_and_detail(tmp_path: Path, capsys) -> None:
+    db_file = tmp_path / "cli_cases.db"
+    db_url = f"sqlite:///{db_file}"
+    init_db(db_url)
+
+    case_svc = CaseService(db_path=db_url)
+    case = case_svc.create_case(
+        organization_id="org_aarav",
+        case_type="MISSING_SETTLEMENT",
+        subject_id="txn_cli_01",
+        decision_summary="Missing payout for SCN-02",
+    )
+
+    # Test cases list CLI
+    cases_args = DummyArgs(org_id="org_aarav", status=None, db_url=db_url)
+    cmd_cases(cases_args)
+    captured = capsys.readouterr()
+    assert case.id in captured.out
+    assert "MISSING_SETTLEMENT" in captured.out
+    assert "DETECTED" in captured.out
+
+    # Test case detail CLI
+    detail_args = DummyArgs(case_id=case.id, org_id="org_aarav", db_url=db_url)
+    cmd_case_detail(detail_args)
+    det_captured = capsys.readouterr()
+    assert f"Case ID:        {case.id}" in det_captured.out
+    assert "CASE_CREATED" in det_captured.out
+    assert "Timeline Events (1)" in det_captured.out
+
+
+def test_cli_approve_case(tmp_path: Path, capsys) -> None:
+    db_file = tmp_path / "cli_appr.db"
+    db_url = f"sqlite:///{db_file}"
+    init_db(db_url)
+
+    case_svc = CaseService(db_path=db_url)
+    case = case_svc.create_case(organization_id="org_aarav", subject_id="txn_cli_02")
+
+    policy_svc = PolicyService(db_path=db_url)
+    appr = policy_svc.request_approval(
+        case_id=case.id,
+        action_type="SUBMIT_MOCK_SUPPORT_CASE",
+        payload={"reason": "Missing payout"},
+        organization_id="org_aarav",
+    )
+
+    # Approve via CLI
+    appr_args = DummyArgs(
+        case_id=case.id,
+        approval_id=appr.id,
+        actor_id="operator_cli",
+        reject=False,
+        reason=None,
+        org_id="org_aarav",
+        db_url=db_url,
+    )
+    cmd_approve_case(appr_args)
+    captured = capsys.readouterr()
+    assert "approved by 'operator_cli'" in captured.out
+
+    # Test rejection via CLI on a fresh approval
+    appr2 = policy_svc.request_approval(
+        case_id=case.id,
+        action_type="SUBMIT_MOCK_SUPPORT_CASE",
+        payload={"reason": "Second ticket"},
+        organization_id="org_aarav",
+    )
+    reject_args = DummyArgs(
+        case_id=case.id,
+        approval_id=appr2.id,
+        actor_id="operator_cli",
+        reject=True,
+        reason="Not needed",
+        org_id="org_aarav",
+        db_url=db_url,
+    )
+    cmd_approve_case(reject_args)
+    rej_captured = capsys.readouterr()
+    assert "rejected by 'operator_cli'" in rej_captured.out

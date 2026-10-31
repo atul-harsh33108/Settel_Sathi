@@ -11,6 +11,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 
 from app.api.routes import router as system_router
+from app.api.routes_cases import audit_router
+from app.api.routes_cases import router as cases_router
 from app.api.routes_import import router as import_router
 from app.api.routes_reconciliation import router as reconciliation_router
 from app.core.config import get_settings
@@ -62,6 +64,8 @@ def create_app() -> FastAPI:
     application.include_router(system_router, prefix=settings.api_prefix)
     application.include_router(import_router, prefix=settings.api_prefix)
     application.include_router(reconciliation_router, prefix=settings.api_prefix)
+    application.include_router(cases_router, prefix=settings.api_prefix)
+    application.include_router(audit_router, prefix=settings.api_prefix)
     return application
 
 

@@ -103,6 +103,25 @@ def init_db(db_path: str | None = None) -> None:
 
     conn = get_connection(db_path)
     try:
+        # Check if audit_events exists and needs column migration before running schema script
+        cur = conn.cursor()
+        cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='audit_events';")
+        if cur.fetchone():
+            cur.execute("PRAGMA table_info(audit_events);")
+            existing_cols = {row[1] for row in cur.fetchall()}
+            if "actor_type" not in existing_cols:
+                conn.execute(
+                    "ALTER TABLE audit_events ADD COLUMN actor_type TEXT NOT NULL DEFAULT 'system';"
+                )
+            if "actor_id" not in existing_cols:
+                conn.execute(
+                    "ALTER TABLE audit_events ADD COLUMN actor_id TEXT NOT NULL DEFAULT 'system';"
+                )
+            if "correlation_id" not in existing_cols:
+                conn.execute("ALTER TABLE audit_events ADD COLUMN correlation_id TEXT;")
+            if "payload_hash" not in existing_cols:
+                conn.execute("ALTER TABLE audit_events ADD COLUMN payload_hash TEXT;")
+
         conn.executescript(schema_sql)
 
         # Ensure default organization exists

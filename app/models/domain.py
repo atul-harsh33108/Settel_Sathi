@@ -222,8 +222,12 @@ class AuditEventRecord:
     entity_type: str
     entity_id: str
     event_type: str
-    details_json: str | None
     created_at: str
+    details_json: str | None = None
+    actor_type: str = "system"
+    actor_id: str = "system"
+    correlation_id: str | None = None
+    payload_hash: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -304,3 +308,142 @@ class ReconciliationResultRecord:
         d["bank_credited_amount"] = format_money(self.bank_credited_amount)
         d["discrepancy_amount"] = format_money(self.discrepancy_amount)
         return d
+
+
+class CaseStatus:
+    DETECTED = "DETECTED"
+    INVESTIGATING = "INVESTIGATING"
+    AWAITING_INFORMATION = "AWAITING_INFORMATION"
+    AWAITING_APPROVAL = "AWAITING_APPROVAL"
+    SUBMITTED = "SUBMITTED"
+    MONITORING = "MONITORING"
+    VERIFIED_RESOLVED = "VERIFIED_RESOLVED"
+    ESCALATED = "ESCALATED"
+
+
+def normalize_case_status(val: str) -> str:
+    """Normalize user or system case status to canonical uppercase enum string."""
+    cleaned = str(val).strip().upper().replace(" ", "_").replace("-", "_")
+    return cleaned
+
+
+class CasePriority:
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+    CRITICAL = "CRITICAL"
+
+
+class ActionClass:
+    READ = "READ"
+    DRAFT = "DRAFT"
+    EXTERNAL_NON_SENSITIVE_WRITE = "EXTERNAL_NON_SENSITIVE_WRITE"
+    SENSITIVE_WRITE = "SENSITIVE_WRITE"
+    BLOCKED = "BLOCKED"
+
+
+class PolicyDecision:
+    ALLOWED = "ALLOWED"
+    APPROVAL_REQUIRED = "APPROVAL_REQUIRED"
+    BLOCKED = "BLOCKED"
+
+
+class ApprovalStatus:
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+    EXPIRED = "EXPIRED"
+    EXECUTED = "EXECUTED"
+
+
+class ActorType:
+    USER = "USER"
+    AGENT = "AGENT"
+    SYSTEM = "SYSTEM"
+
+
+@dataclass(frozen=True)
+class CaseRecord:
+    """Operational case tracking a financial exception or discrepancy."""
+
+    id: str
+    organization_id: str
+    reconciliation_result_id: str | None
+    case_type: str
+    status: str
+    priority: str
+    subject_type: str
+    subject_id: str
+    decision_summary: str | None
+    version: int
+    created_at: str
+    updated_at: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class CaseEventRecord:
+    """Chronological event timeline record for a case."""
+
+    id: str
+    case_id: str
+    organization_id: str
+    actor_type: str
+    actor_id: str
+    from_status: str | None
+    to_status: str
+    event_type: str
+    summary: str
+    details_json: str | None
+    created_at: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class ApprovalRecord:
+    """Exact-payload authorization record for sensitive external actions."""
+
+    id: str
+    case_id: str
+    organization_id: str
+    action_type: str
+    action_class: str
+    payload_hash: str
+    payload_json: str
+    status: str
+    requested_by_type: str
+    requested_by_id: str
+    approved_by: str | None
+    approved_at: str | None
+    expires_at: str
+    rejection_reason: str | None
+    created_at: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class ActionAttemptRecord:
+    """Execution attempt record for an external action with idempotency protection."""
+
+    id: str
+    organization_id: str
+    case_id: str
+    approval_id: str | None
+    idempotency_key: str
+    action_type: str
+    status: str
+    payload_hash: str
+    payload_json: str
+    response_json: str | None
+    error_message: str | None
+    executed_at: str
+    created_at: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)

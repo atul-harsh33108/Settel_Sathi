@@ -9,7 +9,9 @@ from pathlib import Path
 
 from app.db.connection import get_connection, init_db, reset_db
 from app.services import repository
+from app.services.cases import CaseService
 from app.services.importer import ImportService
+from app.services.policy import PolicyService
 from app.services.reconciliation import ReconciliationService
 
 
@@ -198,6 +200,87 @@ def cmd_reconciliation_results(args: argparse.Namespace) -> None:
         conn.close()
 
 
+def cmd_cases(args: argparse.Namespace) -> None:
+    """List cases for an organization with optional status filtering."""
+    service = CaseService(db_path=args.db_url)
+    cases = service.list_cases(
+        organization_id=args.org_id,
+        status=args.status,
+    )
+    print(f"Cases for organization '{args.org_id}' (count={len(cases)}):")
+    if not cases:
+        print("  No cases found.")
+        return
+
+    print(f"{'Case ID':<20} {'Type':<22} {'Status':<22} {'Priority':<10} {'Subject':<35} {'Ver'}")
+    print("-" * 115)
+    for c in cases:
+        subj = f"{c.subject_type}:{c.subject_id}"
+        print(
+            f"{c.id:<20} {c.case_type:<22} {c.status:<22} {c.priority:<10} {subj:<35} {c.version}"
+        )
+
+
+def cmd_case_detail(args: argparse.Namespace) -> None:
+    """Show detailed metadata and chronological event timeline for a case."""
+    service = CaseService(db_path=args.db_url)
+    try:
+        case = service.get_case(args.case_id, args.org_id)
+        events = service.get_timeline(args.case_id, args.org_id)
+    except Exception as exc:
+        print(f"Error fetching case detail: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+    print("=" * 60)
+    print(f"Case ID:        {case.id}")
+    print(f"Organization:   {case.organization_id}")
+    print(f"Case Type:      {case.case_type}")
+    print(f"Status:         {case.status}")
+    print(f"Priority:       {case.priority}")
+    print(f"Subject:        {case.subject_type} / {case.subject_id}")
+    print(f"Version:        {case.version}")
+    print(f"Decision:       {case.decision_summary or '-'}")
+    print(f"Created At:     {case.created_at}")
+    print(f"Updated At:     {case.updated_at}")
+    print("=" * 60)
+    print(f"Timeline Events ({len(events)}):")
+    for e in events:
+        from_to = f"{e.from_status or 'INIT'} -> {e.to_status}"
+        actor = f"{e.actor_type}:{e.actor_id}"
+        print(f"  [{e.created_at}] [{actor}] {e.event_type} ({from_to}): {e.summary}")
+
+
+def cmd_approve_case(args: argparse.Namespace) -> None:
+    """Approve or reject a pending approval for a case."""
+    service = PolicyService(db_path=args.db_url)
+    try:
+        if args.reject:
+            appr = service.reject_approval(
+                approval_id=args.approval_id,
+                actor_id=args.actor_id,
+                reason=args.reason or "Rejected via CLI",
+                case_id=args.case_id,
+                organization_id=args.org_id,
+            )
+            print(f"Approval '{appr.id}' for case '{args.case_id}' rejected by '{args.actor_id}'.")
+        else:
+            appr = service.approve_action(
+                approval_id=args.approval_id,
+                approver_actor_type="USER",
+                approver_actor_id=args.actor_id,
+                approver_role="operator",
+                case_id=args.case_id,
+                organization_id=args.org_id,
+            )
+            print(f"Approval '{appr.id}' for case '{args.case_id}' approved by '{args.actor_id}'.")
+            print(f"Payload hash: {appr.payload_hash}")
+            print(f"Status: {appr.status}")
+
+    except Exception as exc:
+        print(f"Error processing approval: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="SettleSaathi CLI Operations")
     parser.add_argument("--db-url", default=None, help="Database URL override")
@@ -265,6 +348,33 @@ def main() -> None:
     res_p.add_argument("--org-id", default="org_aarav", help="Target organization ID")
     res_p.add_argument("--db-url", default=None, help="Database URL override")
     res_p.set_defaults(func=cmd_reconciliation_results)
+
+    # Cases
+    cases_p = subparsers.add_parser("cases", help="List operational cases")
+    cases_p.add_argument("--org-id", default="org_aarav", help="Target organization ID")
+    cases_p.add_argument("--status", default=None, help="Filter by status")
+    cases_p.add_argument("--db-url", default=None, help="Database URL override")
+    cases_p.set_defaults(func=cmd_cases)
+
+    # Case detail
+    detail_p = subparsers.add_parser("case-detail", help="Show case details and event timeline")
+    detail_p.add_argument("--case-id", required=True, help="Case ID to inspect")
+    detail_p.add_argument("--org-id", default="org_aarav", help="Target organization ID")
+    detail_p.add_argument("--db-url", default=None, help="Database URL override")
+    detail_p.set_defaults(func=cmd_case_detail)
+
+    # Approve case
+    appr_p = subparsers.add_parser("approve-case", help="Approve or reject a pending case approval")
+    appr_p.add_argument("--case-id", required=True, help="Case ID")
+    appr_p.add_argument("--approval-id", required=True, help="Approval ID to approve/reject")
+    appr_p.add_argument("--actor-id", default="operator_aarav", help="Approver actor ID")
+    appr_p.add_argument(
+        "--reject", action="store_true", default=False, help="Reject instead of approve"
+    )
+    appr_p.add_argument("--reason", default=None, help="Rejection reason or approval note")
+    appr_p.add_argument("--org-id", default="org_aarav", help="Target organization ID")
+    appr_p.add_argument("--db-url", default=None, help="Database URL override")
+    appr_p.set_defaults(func=cmd_approve_case)
 
     args = parser.parse_args()
     args.func(args)
